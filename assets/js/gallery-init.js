@@ -4,11 +4,6 @@
  */
 (() => {
   const CATEGORIES = {
-    bgimg: {
-      label: "Background Images",
-      path: "bgimg/",
-      images: ["botpink.png", "botpink2.png", "botviolet.png", "pink.jpg"] // Add your filenames here
-    },
     YuriGifs: {
       label: "Yuri Gifs",
       path: "YuriGifs/",
@@ -18,6 +13,11 @@
       label: "Yuri Hugs",
       path: "YuriHugs/",
       images: ["hug1.gif", "hug2.gif", "hug3.gif", "hug4.gif", "hug5.gif", "hug6.gif", "hug7.gif", "hug8.gif", "hug9.gif"] // Add your filenames here
+    },
+    bgimg: {
+      label: "Background Images",
+      path: "bgimg/",
+      images: ["botpink.png", "botpink2.png", "botviolet.png", "pink.jpg", "CheckViolet.gif"] // Add your filenames here
     }
   };
 
