@@ -1,0 +1,272 @@
+{
+  "generatedAt": "2026-05-26T12:05:45.839Z",
+  "categories": [
+    {
+      "key": "bgimg",
+      "label": "Background Images",
+      "path": "bgimg/",
+      "images": [
+        {
+          "name": "botpink.png",
+          "url": "bgimg/botpink.png",
+          "category": "bgimg"
+        },
+        {
+          "name": "botpink2.png",
+          "url": "bgimg/botpink2.png",
+          "category": "bgimg"
+        },
+        {
+          "name": "botviolet.png",
+          "url": "bgimg/botviolet.png",
+          "category": "bgimg"
+        },
+        {
+          "name": "pink.jpg",
+          "url": "bgimg/pink.jpg",
+          "category": "bgimg"
+        }
+      ]
+    },
+    {
+      "key": "YuriGifs",
+      "label": "Yuri Gifs",
+      "path": "YuriGifs/",
+      "images": [
+        {
+          "name": "yuri1.gif",
+          "url": "YuriGifs/yuri1.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri2.gif",
+          "url": "YuriGifs/yuri2.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri3.gif",
+          "url": "YuriGifs/yuri3.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri4.gif",
+          "url": "YuriGifs/yuri4.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri5.gif",
+          "url": "YuriGifs/yuri5.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri6.gif",
+          "url": "YuriGifs/yuri6.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri7.gif",
+          "url": "YuriGifs/yuri7.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri8.gif",
+          "url": "YuriGifs/yuri8.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri9.gif",
+          "url": "YuriGifs/yuri9.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri10.gif",
+          "url": "YuriGifs/yuri10.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri11.gif",
+          "url": "YuriGifs/yuri11.gif",
+          "category": "YuriGifs"
+        },
+        {
+          "name": "yuri12.gif",
+          "url": "YuriGifs/yuri12.gif",
+          "category": "YuriGifs"
+        }
+      ]
+    },
+    {
+      "key": "YuriHugs",
+      "label": "Yuri Hugs",
+      "path": "YuriHugs/",
+      "images": [
+        {
+          "name": "hug1.gif",
+          "url": "YuriHugs/hug1.gif",
+          "category": "YuriHugs"
+        },
+        {
+          "name": "hug2.gif",
+          "url": "YuriHugs/hug2.gif",
+          "category": "YuriHugs"
+        },
+        {
+          "name": "hug3.gif",
+          "url": "YuriHugs/hug3.gif",
+          "category": "YuriHugs"
+        },
+        {
+          "name": "hug4.gif",
+          "url": "YuriHugs/hug4.gif",
+          "category": "YuriHugs"
+        },
+        {
+          "name": "hug5.gif",
+          "url": "YuriHugs/hug5.gif",
+          "category": "YuriHugs"
+        },
+        {
+          "name": "hug6.gif",
+          "url": "YuriHugs/hug6.gif",
+          "category": "YuriHugs"
+        },
+        {
+          "name": "hug7.gif",
+          "url": "YuriHugs/hug7.gif",
+          "category": "YuriHugs"
+        },
+        {
+          "name": "hug8.gif",
+          "url": "YuriHugs/hug8.gif",
+          "category": "YuriHugs"
+        },
+        {
+          "name": "hug9.gif",
+          "url": "YuriHugs/hug9.gif",
+          "category": "YuriHugs"
+        },
+        {
+          "name": "hug10.gif",
+          "url": "YuriHugs/hug10.gif",
+          "category": "YuriHugs"
+        }
+      ]
+    },
+    {
+      "key": "Headpats",
+      "label": "Headpats",
+      "path": "Headpats/",
+      "images": [
+        {
+          "name": "pat1.gif",
+          "url": "Headpats/pat1.gif",
+          "category": "Headpats"
+        },
+        {
+          "name": "pat2.gif",
+          "url": "Headpats/pat2.gif",
+          "category": "Headpats"
+        },
+        {
+          "name": "pat3.gif",
+          "url": "Headpats/pat3.gif",
+          "category": "Headpats"
+        },
+        {
+          "name": "pat4.gif",
+          "url": "Headpats/pat4.gif",
+          "category": "Headpats"
+        },
+        {
+          "name": "pat5.gif",
+          "url": "Headpats/pat5.gif",
+          "category": "Headpats"
+        },
+        {
+          "name": "pat6.gif",
+          "url": "Headpats/pat6.gif",
+          "category": "Headpats"
+        },
+        {
+          "name": "pat7.gif",
+          "url": "Headpats/pat7.gif",
+          "category": "Headpats"
+        },
+        {
+          "name": "pat8.gif",
+          "url": "Headpats/pat8.gif",
+          "category": "Headpats"
+        },
+        {
+          "name": "pat9.gif",
+          "url": "Headpats/pat9.gif",
+          "category": "Headpats"
+        },
+        {
+          "name": "pat10.gif",
+          "url": "Headpats/pat10.gif",
+          "category": "Headpats"
+        },
+        {
+          "name": "pat11.gif",
+          "url": "Headpats/pat11.gif",
+          "category": "Headpats"
+        }
+      ]
+    },
+    {
+      "key": "Other",
+      "label": "Other Images",
+      "path": "Other/",
+      "images": [
+        {
+          "name": "CoinHeads.png",
+          "url": "Other/CoinHeads.png",
+          "category": "Other"
+        },
+        {
+          "name": "CoinTails.png",
+          "url": "Other/CoinTails.png",
+          "category": "Other"
+        }
+      ]
+    },
+    {
+      "key": "D6",
+      "label": "D6 Gallery",
+      "path": "D6/",
+      "images": [
+        {
+          "name": "1.png",
+          "url": "D6/1.png",
+          "category": "D6"
+        },
+        {
+          "name": "2.png",
+          "url": "D6/2.png",
+          "category": "D6"
+        },
+        {
+          "name": "3.png",
+          "url": "D6/3.png",
+          "category": "D6"
+        },
+        {
+          "name": "4.png",
+          "url": "D6/4.png",
+          "category": "D6"
+        },
+        {
+          "name": "5.png",
+          "url": "D6/5.png",
+          "category": "D6"
+        },
+        {
+          "name": "6.png",
+          "url": "D6/6.png",
+          "category": "D6"
+        }
+      ]
+    }
+  ]
+}

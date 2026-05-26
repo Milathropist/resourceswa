@@ -1,0 +1,191 @@
+HOW TO MAKE THIS SITE DEPLOY ON GITHUB PAGES
+===========================================
+
+Your site only deploys if GitHub Pages is configured to build from GitHub Actions.
+If commits appear in the repo but no new deployment starts, the most common cause is:
+
+- Pages is still set to deploy from a branch instead of GitHub Actions
+- You pushed to a branch other than main
+- The workflow file is not on the default branch
+- GitHub Actions is disabled for the repository
+
+
+1. CHECK THE BRANCH NAME
+------------------------
+
+This workflow only runs on pushes to:
+
+- main
+
+The workflow file says:
+
+- .github/workflows/static.yml
+- on:
+-   push:
+-     branches: ["main"]
+
+So you must push your changes to the main branch.
+
+If you upload files to some other branch, the deployment will not start.
+
+
+2. ENABLE GITHUB ACTIONS FOR THE REPOSITORY
+-------------------------------------------
+
+On GitHub, open your repository and do this:
+
+1. Click Settings
+2. Click Actions > General
+3. Under "Actions permissions", make sure Actions are allowed
+4. Save if needed
+
+If Actions are disabled, the workflow will never run.
+
+
+3. SET GITHUB PAGES TO "GITHUB ACTIONS"
+---------------------------------------
+
+This is the most important step.
+
+On GitHub, open:
+
+1. Settings
+2. Pages
+
+Under "Build and deployment":
+
+1. Source = GitHub Actions
+
+Do NOT leave it as:
+
+- Deploy from a branch
+
+If it is set to branch deployment, commits can still appear in the repo, but this workflow will not publish the site.
+
+
+4. MAKE SURE THE WORKFLOW FILE EXISTS ON GITHUB
+-----------------------------------------------
+
+This file must be committed in the repo:
+
+- .github/workflows/static.yml
+
+If you only changed it locally and did not push it, GitHub cannot run it.
+
+
+5. PUSH ALL REQUIRED FILES
+--------------------------
+
+These files should be in GitHub:
+
+- .github/workflows/static.yml
+- assets/js/gallery-init.js
+- scripts/build-gallery-manifest.js
+- assets/data/gallery.json
+
+The workflow generates a fresh gallery manifest during deployment, but keeping
+`assets/data/gallery.json` in the repo is still useful so the site also works in local/static previews.
+
+
+6. EXACT DEPLOYMENT FLOW
+------------------------
+
+Every time you add images or folders:
+
+1. Put the new image files into the repository folders
+2. Commit the changes
+3. Push to main
+4. GitHub Actions runs `.github/workflows/static.yml`
+5. The workflow runs `node scripts/build-gallery-manifest.js`
+6. Jekyll builds the site
+7. GitHub Pages publishes the new build
+
+
+7. HOW TO CHECK IF IT ACTUALLY STARTED
+--------------------------------------
+
+On GitHub:
+
+1. Open the repository
+2. Click Actions
+3. Open the workflow named:
+   Deploy Jekyll site to Pages
+
+You should see a new run after each push to main.
+
+If you do not see a new run at all, then one of these is true:
+
+- You did not push to main
+- Actions are disabled
+- The workflow file is missing from GitHub
+- The repository default branch is not main
+- The push happened in a fork or different repository
+
+
+8. IF YOUR DEFAULT BRANCH IS NOT "main"
+---------------------------------------
+
+If your repository uses `master` or another branch name, this workflow will not start.
+
+You have two options:
+
+Option A:
+- Rename your default branch to `main`
+
+Option B:
+- Edit `.github/workflows/static.yml`
+- Change:
+-   branches: ["main"]
+- to your real branch name
+
+Example:
+- branches: ["master"]
+
+
+9. IF YOU UPLOAD FILES THROUGH THE GITHUB WEBSITE
+-------------------------------------------------
+
+That is okay, but confirm these two things:
+
+1. The website commit is going into the `main` branch
+2. It is going into this exact repository, not another one
+
+If GitHub asks whether to commit directly to `main` or create another branch,
+choose direct commit to `main` if you want the site to deploy immediately.
+
+
+10. IF A WORKFLOW RUN STARTS BUT THE SITE STILL DOES NOT UPDATE
+---------------------------------------------------------------
+
+Check:
+
+1. Actions > latest run
+2. Open the build job
+3. Confirm these steps succeed:
+- Setup Node.js
+- Build gallery manifest
+- Build with Jekyll
+- Upload artifact
+- Deploy to GitHub Pages
+
+If one step fails, open its log and fix that error.
+
+
+11. QUICKEST FIX CHECKLIST
+--------------------------
+
+Do these in order:
+
+1. Push this repository to the `main` branch
+2. Go to Settings > Pages
+3. Set Source to `GitHub Actions`
+4. Go to Settings > Actions > General
+5. Make sure Actions are enabled
+6. Push one small test commit to `main`
+7. Open Actions and verify a new run starts
+
+
+12. AFTER YOU FIX SETTINGS
+--------------------------
+
+Once GitHub Pages is set to `GitHub Actions`, future uploads should deploy automatically after each push to `main`.
