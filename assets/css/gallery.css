@@ -7,6 +7,108 @@
     padding: 1rem;
 }
 
+.gallery-corner-tools {
+    position: fixed;
+    top: 0.75rem;
+    z-index: 10020;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+}
+
+.gallery-corner-tools-left {
+    left: 0.75rem;
+}
+
+.gallery-corner-tools-right {
+    right: 0.75rem;
+}
+
+.gallery-corner-tools .site-corner-tool {
+    background-color: rgba(238, 162, 214, 0.23);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: none;
+    border-radius: 25px;
+    border-top: 1px solid rgba(158, 157, 157, 0.4);
+    border-left: 1px solid rgba(158, 157, 157, 0.3);
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.085);
+    color: #ffffff;
+    width: 3rem;
+    height: 3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1.25rem;
+    transition: background-color 0.2s ease-in-out, transform 0.08s ease-in-out;
+}
+
+.gallery-corner-tools .site-corner-tool:hover,
+.gallery-corner-tools .site-corner-tool.is-active {
+    background-color: rgba(143, 255, 143, 0.12);
+}
+
+.gallery-corner-tools .site-corner-tool:active {
+    transform: translateY(1px);
+}
+
+.gallery-search-panel {
+    width: min(78vw, 22rem);
+    padding: 0.9rem;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(158, 157, 157, 0.4);
+    border-left: 1px solid rgba(158, 157, 157, 0.3);
+    box-shadow: 0 16px 35px rgba(0, 0, 0, 0.35);
+}
+
+.gallery-search-panel[hidden],
+.gallery-view[hidden] {
+    display: none !important;
+}
+
+.gallery-search-panel label {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: #ffffff;
+    font-size: 0.75rem;
+    letter-spacing: 0.12rem;
+    text-transform: uppercase;
+}
+
+.gallery-search-panel input {
+    width: 100%;
+    height: 2.5rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.45);
+    color: #ffffff;
+    padding: 0 0.8rem;
+    outline: none;
+}
+
+.gallery-search-panel input:focus {
+    border-color: rgba(143, 255, 143, 0.8);
+    box-shadow: 0 0 0 2px rgba(143, 255, 143, 0.16);
+}
+
+.gallery-search-status {
+    min-height: 1.2rem;
+    margin-top: 0.55rem;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.8rem;
+}
+
+.gallery-empty {
+    margin: 1.5rem;
+    color: rgba(255, 255, 255, 0.82);
+    text-align: center;
+}
+
 /* Restored Button Look */
 .collapsible-trigger {
     appearance: none;
@@ -97,4 +199,247 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.gallery-editor {
+    width: 100%;
+}
+
+.gallery-editor-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: center;
+    justify-items: center;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.22);
+    text-align: center;
+}
+
+.gallery-editor-title {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.25rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+}
+
+.gallery-editor-copy {
+    margin: 0.25rem 0 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.9rem;
+}
+
+.gallery-editor-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.gallery-file-label,
+.rarity-download {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-top-color: rgba(158, 157, 157, 0.4);
+    border-left-color: rgba(158, 157, 157, 0.3);
+    background-color: rgba(158, 157, 157, 0.08);
+    color: #ffffff !important;
+    cursor: pointer;
+    padding: 0 1rem;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.08rem;
+    font-size: 0.78rem;
+}
+
+.gallery-file-label:hover,
+.rarity-download:hover {
+    background-color: rgba(143, 255, 143, 0.1);
+    border-top-color: rgba(143, 255, 143, 0.4);
+}
+
+.gallery-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+.rarity-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+}
+
+.rarity-card {
+    min-width: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.36);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.rarity-preview {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background-color: rgba(255, 255, 255, 0.05);
+    background-image:
+        linear-gradient(45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%);
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+    background-size: 20px 20px;
+}
+
+.rarity-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.rarity-placeholder {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+}
+
+.rarity-meta {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: center;
+    padding: 0.85rem;
+}
+
+.rarity-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 999px;
+    display: inline-block;
+}
+
+.rarity-dot-golden {
+    background: linear-gradient(135deg, #ca8a04, #fef08a, #ca8a04);
+}
+
+.rarity-dot-diamond {
+    background: linear-gradient(135deg, #1d4ed8, #bfdbfe, #1d4ed8);
+}
+
+.rarity-dot-ruby {
+    background: linear-gradient(135deg, #9f1239, #fda4af, #be123c);
+}
+
+.rarity-dot-pink {
+    background: linear-gradient(135deg, #be185d, #fbcfe8, #db2777);
+}
+
+.rarity-dot-emerald {
+    background: linear-gradient(135deg, #047857, #a7f3d0, #059669);
+}
+
+.rarity-dot-silver {
+    background: linear-gradient(135deg, #64748b, #f8fafc, #94a3b8);
+}
+
+.rarity-dot-bronze {
+    background: linear-gradient(135deg, #92400e, #fdba74, #a16207);
+}
+
+.rarity-name {
+    color: #ffffff;
+    font-size: 0.85rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rarity-download {
+    grid-column: 1 / -1;
+    min-height: 2.35rem;
+    font-size: 0.72rem;
+}
+
+.rarity-download[aria-disabled="true"] {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+@media screen and (max-width: 980px) {
+    .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .rarity-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media screen and (max-width: 736px) {
+    .gallery-corner-tools {
+        top: 0.5rem;
+    }
+
+    .gallery-corner-tools-left {
+        left: 0.5rem;
+    }
+
+    .gallery-corner-tools-right {
+        right: 0.5rem;
+    }
+
+    .gallery-corner-tools .site-corner-tool {
+        width: 2.75rem;
+        height: 2.75rem;
+    }
+
+    .gallery-search-panel {
+        position: fixed;
+        top: 3.75rem;
+        right: 0.5rem;
+        width: calc(100vw - 1rem);
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .collapsible-trigger {
+        font-size: 0.9rem;
+        padding: 12px 1rem;
+    }
+
+    .gallery-editor-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-editor-actions {
+        justify-content: center;
+    }
+
+    .rarity-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
 }

@@ -32,6 +32,39 @@
 		</style>
 	</head>
 	<body class="is-preload">
+		<div class="gallery-corner-tools gallery-corner-tools-left" aria-label="Editor tools">
+			<button
+				type="button"
+				class="site-corner-tool gallery-editor-trigger"
+				data-gallery-editor-open
+				aria-label="Open image editor"
+				title="Image editor">
+				<i class="fas fa-image" aria-hidden="true"></i>
+			</button>
+		</div>
+
+		<div class="gallery-corner-tools gallery-corner-tools-right" aria-label="Gallery tools">
+			<button
+				type="button"
+				class="site-corner-tool gallery-search-trigger"
+				data-gallery-search-toggle
+				aria-label="Search gallery"
+				title="Search">
+				<i class="fas fa-search" aria-hidden="true"></i>
+			</button>
+			<div class="gallery-search-panel" data-gallery-search-panel hidden>
+				<label for="gallerySearchInput">Search gallery</label>
+				<input
+					id="gallerySearchInput"
+					type="search"
+					data-gallery-search-input
+					placeholder="Type a folder or image name..."
+					autocomplete="off"
+					spellcheck="false" />
+				<div class="gallery-search-status" data-gallery-search-status aria-live="polite"></div>
+			</div>
+		</div>
+
 		<!-- Wrapper -->
 			<div id="wrapper">
 
