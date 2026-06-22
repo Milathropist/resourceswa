@@ -384,6 +384,125 @@
     pointer-events: none;
 }
 
+/* Fancy text generator */
+.fancy-text-generator {
+    margin-top: 1rem;
+    padding: 1.25rem;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.24);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fancy-text-heading {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.25rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+}
+
+.fancy-text-description {
+    margin: 0.45rem 0 1rem;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.9rem;
+}
+
+.fancy-text-input-label,
+.fancy-text-category-label {
+    display: block;
+    color: #ffffff;
+    font-size: 0.76rem;
+    letter-spacing: 0.1rem;
+    text-transform: uppercase;
+}
+
+.fancy-text-category-label {
+    margin: 0;
+    line-height: 2rem;
+}
+
+.fancy-text-input,
+.fancy-text-output {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(0, 0, 0, 0.42);
+    color: #ffffff;
+    padding: 0.8rem;
+    outline: none;
+    resize: vertical;
+}
+
+.fancy-text-input {
+    min-height: 3.1rem;
+    margin-top: 0.45rem;
+}
+
+.fancy-text-input:focus,
+.fancy-text-output:focus {
+    border-color: rgba(143, 255, 143, 0.8);
+    box-shadow: 0 0 0 2px rgba(143, 255, 143, 0.16);
+}
+
+.fancy-text-results {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.fancy-text-category {
+    min-width: 0;
+    padding: 1rem;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fancy-text-category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.55rem;
+}
+
+.fancy-text-copy {
+    appearance: none;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: 2rem;
+    min-height: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 6px;
+    box-shadow: none;
+    background: rgba(158, 157, 157, 0.08);
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0 0.7rem;
+    font-size: 0.65rem;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.06rem;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.fancy-text-copy:hover {
+    background: rgba(143, 255, 143, 0.1);
+    border-color: rgba(143, 255, 143, 0.4);
+}
+
+.fancy-text-output {
+    min-height: 13rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+
 @media screen and (max-width: 980px) {
     .gallery-grid {
         grid-template-columns: repeat(3, 1fr);
@@ -440,6 +559,14 @@
 
     .rarity-grid {
         grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+
+    .fancy-text-results {
+        grid-template-columns: 1fr;
+    }
+
+    .fancy-text-generator {
         padding: 1rem;
     }
 }

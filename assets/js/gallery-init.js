@@ -54,6 +54,7 @@
       key: `${overlay.key}-light`,
       baseKey: overlay.key,
       label: `${overlay.label} Light`,
+      strength: "light",
       impact: false,
       washAlpha: 0.44,
       waveAlpha: 0.24,
@@ -67,6 +68,8 @@
     {
       ...overlay,
       baseKey: overlay.key,
+      label: `${overlay.label} Regular`,
+      strength: "regular",
       impact: true,
       washAlpha: 0.58,
       waveAlpha: 0.32,
@@ -76,8 +79,113 @@
       screenAlpha: 0.36,
       saturation: 1.1,
       contrast: 1.03
+    },
+    {
+      ...overlay,
+      key: `${overlay.key}-strong`,
+      baseKey: overlay.key,
+      label: `${overlay.label} Strong`,
+      strength: "strong",
+      impact: true,
+      washAlpha: 0.96,
+      waveAlpha: 0.62,
+      shineAlpha: 1,
+      sparkleAlpha: 1,
+      tintAlpha: 1,
+      screenAlpha: 0.82,
+      saturation: 1.38,
+      contrast: 1.14
     }
   ]);
+  const prideShineFlags = [
+    {
+      key: "pride",
+      label: "Pride",
+      colors: ["#e40303", "#ffed00", "#732982"],
+      stripes: ["#e40303", "#ff8c00", "#ffed00", "#008026", "#24408e", "#732982"],
+      glow: "rgba(255, 255, 255, 0.6)"
+    },
+    {
+      key: "lesbian",
+      label: "Lesbian",
+      colors: ["#d52d00", "#ffffff", "#a30262"],
+      stripes: ["#d52d00", "#ef7627", "#ff9a56", "#ffffff", "#d162a4", "#b55690", "#a30262"],
+      glow: "rgba(255, 154, 86, 0.58)"
+    },
+    {
+      key: "trans",
+      label: "Trans",
+      colors: ["#5bcefa", "#ffffff", "#f5a9b8"],
+      stripes: ["#5bcefa", "#f5a9b8", "#ffffff", "#f5a9b8", "#5bcefa"],
+      glow: "rgba(245, 169, 184, 0.6)"
+    },
+    {
+      key: "bi",
+      label: "Bi",
+      colors: ["#d60270", "#9b4f96", "#0038a8"],
+      stripes: ["#d60270", "#d60270", "#9b4f96", "#0038a8", "#0038a8"],
+      glow: "rgba(155, 79, 150, 0.58)"
+    },
+    {
+      key: "nonbinary",
+      label: "Nonbinary",
+      colors: ["#fff430", "#9c59d1", "#000000"],
+      stripes: ["#fff430", "#ffffff", "#9c59d1", "#000000"],
+      glow: "rgba(156, 89, 209, 0.58)"
+    },
+    {
+      key: "asexual",
+      label: "Asexual",
+      colors: ["#000000", "#ffffff", "#800080"],
+      stripes: ["#000000", "#a3a3a3", "#ffffff", "#800080"],
+      glow: "rgba(128, 0, 128, 0.58)"
+    },
+    {
+      key: "gay",
+      label: "Gay",
+      colors: ["#078d70", "#ffffff", "#3d1a78"],
+      stripes: ["#078d70", "#26ceaa", "#98e8c1", "#ffffff", "#7bade2", "#5049cc", "#3d1a78"],
+      glow: "rgba(152, 232, 193, 0.58)"
+    }
+  ];
+  const prideShineRenderOptions = prideShineFlags.flatMap((overlay) => [
+    {
+      ...overlay,
+      key: `pride-shine-${overlay.key}-light`,
+      baseKey: `pride-shine-${overlay.key}`,
+      label: `${overlay.label} Light`,
+      strength: "light",
+      impact: false,
+      washAlpha: 0.56,
+      waveAlpha: 0.22,
+      shineAlpha: 0.7,
+      sparkleAlpha: 0.56,
+      tintAlpha: 0.68,
+      screenAlpha: 0.4,
+      saturation: 1.12,
+      contrast: 1.02
+    },
+    {
+      ...overlay,
+      key: `pride-shine-${overlay.key}`,
+      baseKey: `pride-shine-${overlay.key}`,
+      label: `${overlay.label} Regular`,
+      strength: "regular",
+      impact: true,
+      washAlpha: 0.76,
+      waveAlpha: 0.32,
+      shineAlpha: 0.82,
+      sparkleAlpha: 0.82,
+      tintAlpha: 0.88,
+      screenAlpha: 0.48,
+      saturation: 1.16,
+      contrast: 1.04
+    }
+  ]);
+  const editorRenderOptions = [
+    ...rarityRenderOptions,
+    ...prideShineRenderOptions
+  ];
 
   let allCategories = [];
   let searchTerm = "";
@@ -267,10 +375,21 @@
     updateSearchStatus(categories);
   };
 
-  const createRarityCard = (overlay) => {
+  const getStripeGradient = (stripes) => {
+    if (!Array.isArray(stripes) || stripes.length === 0) return "";
+
+    return `linear-gradient(180deg, ${stripes.map((color, index) => {
+      const start = Math.round(index * 100 / stripes.length);
+      const end = Math.round((index + 1) * 100 / stripes.length);
+      return `${color} ${start}% ${end}%`;
+    }).join(", ")})`;
+  };
+
+  const createOverlayCard = (overlay) => {
     const card = document.createElement("div");
     card.className = overlay.impact ? "rarity-card rarity-card-impact" : "rarity-card";
-    card.dataset.rarityCard = overlay.key;
+    if (overlay.strength === "strong") card.classList.add("rarity-card-strong");
+    card.dataset.editorCard = overlay.key;
 
     const preview = document.createElement("div");
     preview.className = "rarity-preview";
@@ -282,6 +401,10 @@
     const dot = document.createElement("span");
     dot.className = `rarity-dot rarity-dot-${overlay.baseKey}`;
     dot.setAttribute("aria-hidden", "true");
+    const stripeGradient = getStripeGradient(overlay.stripes);
+    if (stripeGradient) {
+      dot.style.background = stripeGradient;
+    }
 
     const name = document.createElement("span");
     name.className = "rarity-name";
@@ -297,6 +420,34 @@
     card.append(preview, meta);
 
     return card;
+  };
+
+  const createEditorSection = (title, overlays) => {
+    const section = document.createElement("div");
+    section.className = "gallery-section";
+
+    const button = document.createElement("button");
+    button.className = "collapsible-trigger";
+    button.type = "button";
+    button.setAttribute("aria-expanded", "false");
+    button.innerHTML = `<span>${title}</span>`;
+
+    const content = document.createElement("div");
+    content.className = "collapsible-content";
+
+    const grid = document.createElement("div");
+    grid.className = "rarity-grid";
+    overlays.forEach((overlay) => grid.appendChild(createOverlayCard(overlay)));
+    content.appendChild(grid);
+
+    button.onclick = () => {
+      button.classList.toggle("active");
+      content.classList.toggle("open");
+      button.setAttribute("aria-expanded", String(content.classList.contains("open")));
+    };
+
+    section.append(button, content);
+    return section;
   };
 
   const renderEditor = () => {
@@ -321,35 +472,24 @@
       </div>
     `;
 
-    const section = document.createElement("div");
-    section.className = "gallery-section";
-
-    const button = document.createElement("button");
-    button.className = "collapsible-trigger active";
-    button.type = "button";
-    button.innerHTML = "<span>Rarity Overlays</span>";
-
-    const content = document.createElement("div");
-    content.className = "collapsible-content open";
-
-    const grid = document.createElement("div");
-    grid.className = "rarity-grid";
-    rarityRenderOptions.forEach((overlay) => grid.appendChild(createRarityCard(overlay)));
-    content.appendChild(grid);
-
-    button.onclick = () => {
-      button.classList.toggle("active");
-      content.classList.toggle("open");
-    };
-
-    section.append(button, content);
-    wrapper.append(toolbar, section);
+    wrapper.append(
+      toolbar,
+      createEditorSection("Rarity Overlays — Light", rarityRenderOptions.filter((overlay) => overlay.strength === "light")),
+      createEditorSection("Rarity Overlays — Regular", rarityRenderOptions.filter((overlay) => overlay.strength === "regular")),
+      createEditorSection("Rarity Overlays — Strong", rarityRenderOptions.filter((overlay) => overlay.strength === "strong")),
+      createEditorSection("Pride Shine — Light", prideShineRenderOptions.filter((overlay) => overlay.strength === "light")),
+      createEditorSection("Pride Shine — Regular", prideShineRenderOptions.filter((overlay) => overlay.strength === "regular"))
+    );
     mainContainer.appendChild(wrapper);
 
     document.getElementById("rarityImageInput")?.addEventListener("change", handleImageUpload);
   };
 
-  const buildPalette = () => {
+  const TRANSPARENT_ALPHA_THRESHOLD = 128;
+  const TRANSPARENT_INDEX = 255;
+  const MAX_OPAQUE_GIF_COLORS = 255;
+
+  const buildFallbackPalette = () => {
     const palette = [];
     const levels = [0, 51, 102, 153, 204, 255];
     for (const red of levels) {
@@ -365,30 +505,78 @@
       palette.push(value, value, value);
     }
 
-    palette[254 * 3] = 255;
-    palette[254 * 3 + 1] = 255;
-    palette[254 * 3 + 2] = 255;
-    palette[255 * 3] = 0;
-    palette[255 * 3 + 1] = 0;
-    palette[255 * 3 + 2] = 0;
+    while (palette.length < MAX_OPAQUE_GIF_COLORS * 3) {
+      palette.push(255, 255, 255);
+    }
+
+    palette[TRANSPARENT_INDEX * 3] = 0;
+    palette[TRANSPARENT_INDEX * 3 + 1] = 0;
+    palette[TRANSPARENT_INDEX * 3 + 2] = 0;
     return palette;
   };
 
-  const gifPalette = buildPalette();
-  const nearestPaletteCache = new Int16Array(32768);
-  nearestPaletteCache.fill(-1);
+  const fallbackPalette = buildFallbackPalette();
 
-  const findNearestPaletteIndex = (palette, red, green, blue) => {
+  const buildGifPalette = (frames) => {
+    const counts = new Uint32Array(32768);
+    const redTotals = new Uint32Array(32768);
+    const greenTotals = new Uint32Array(32768);
+    const blueTotals = new Uint32Array(32768);
+    const usedKeys = [];
+
+    frames.forEach((imageData) => {
+      const pixels = imageData.data;
+      for (let source = 0; source < pixels.length; source += 4) {
+        if (pixels[source + 3] < TRANSPARENT_ALPHA_THRESHOLD) continue;
+
+        const key = ((pixels[source] >> 3) << 10)
+          | ((pixels[source + 1] >> 3) << 5)
+          | (pixels[source + 2] >> 3);
+        if (counts[key] === 0) {
+          usedKeys.push(key);
+        }
+        counts[key]++;
+        redTotals[key] += pixels[source];
+        greenTotals[key] += pixels[source + 1];
+        blueTotals[key] += pixels[source + 2];
+      }
+    });
+
+    usedKeys.sort((left, right) => counts[right] - counts[left]);
+
+    const palette = [];
+    usedKeys.slice(0, MAX_OPAQUE_GIF_COLORS).forEach((key) => {
+      const count = counts[key];
+      palette.push(
+        Math.round(redTotals[key] / count),
+        Math.round(greenTotals[key] / count),
+        Math.round(blueTotals[key] / count)
+      );
+    });
+
+    for (let index = palette.length; index < MAX_OPAQUE_GIF_COLORS * 3; index += 3) {
+      palette.push(
+        fallbackPalette[index],
+        fallbackPalette[index + 1],
+        fallbackPalette[index + 2]
+      );
+    }
+
+    palette.push(0, 0, 0);
+    return palette;
+  };
+
+  const findNearestPaletteIndex = (palette, cache, red, green, blue) => {
     const redInt = Math.round(red);
     const greenInt = Math.round(green);
     const blueInt = Math.round(blue);
     const cacheKey = ((redInt >> 3) << 10) | ((greenInt >> 3) << 5) | (blueInt >> 3);
-    const cachedIndex = nearestPaletteCache[cacheKey];
+    const cachedIndex = cache[cacheKey];
     if (cachedIndex !== -1) return cachedIndex;
 
     let bestIndex = 0;
     let bestDistance = Infinity;
-    for (let index = 0; index < 255; index++) {
+    for (let index = 0; index < TRANSPARENT_INDEX; index++) {
       const paletteIndex = index * 3;
       const redDelta = redInt - palette[paletteIndex];
       const greenDelta = greenInt - palette[paletteIndex + 1];
@@ -399,61 +587,27 @@
         bestIndex = index;
       }
     }
-    nearestPaletteCache[cacheKey] = bestIndex;
+    cache[cacheKey] = bestIndex;
     return bestIndex;
   };
 
-  const clampColor = (value) => Math.max(0, Math.min(255, value));
-
-  const quantizeFrame = (imageData) => {
+  const quantizeFrame = (imageData, palette, cache) => {
     const pixels = imageData.data;
-    const palette = gifPalette;
-    const colors = new Float32Array(imageData.width * imageData.height * 3);
     const indexed = new Uint8Array(imageData.width * imageData.height);
 
-    for (let source = 0, target = 0; source < pixels.length; source += 4, target += 3) {
-      colors[target] = pixels[source];
-      colors[target + 1] = pixels[source + 1];
-      colors[target + 2] = pixels[source + 2];
-    }
-
-    const pushError = (x, y, redError, greenError, blueError, factor) => {
-      if (x < 0 || x >= imageData.width || y < 0 || y >= imageData.height) return;
-
-      const pixelIndex = y * imageData.width + x;
-      if (pixels[pixelIndex * 4 + 3] < 40) return;
-
-      const colorIndex = pixelIndex * 3;
-      colors[colorIndex] = clampColor(colors[colorIndex] + redError * factor);
-      colors[colorIndex + 1] = clampColor(colors[colorIndex + 1] + greenError * factor);
-      colors[colorIndex + 2] = clampColor(colors[colorIndex + 2] + blueError * factor);
-    };
-
-    for (let y = 0; y < imageData.height; y++) {
-      for (let x = 0; x < imageData.width; x++) {
-        const pixelIndex = y * imageData.width + x;
-        const source = pixelIndex * 4;
-        if (pixels[source + 3] < 40) {
-          indexed[pixelIndex] = 255;
-          continue;
-        }
-
-        const colorIndex = pixelIndex * 3;
-        const red = clampColor(colors[colorIndex]);
-        const green = clampColor(colors[colorIndex + 1]);
-        const blue = clampColor(colors[colorIndex + 2]);
-        const paletteIndex = findNearestPaletteIndex(palette, red, green, blue);
-        indexed[pixelIndex] = paletteIndex;
-
-        const paletteOffset = paletteIndex * 3;
-        const redError = red - palette[paletteOffset];
-        const greenError = green - palette[paletteOffset + 1];
-        const blueError = blue - palette[paletteOffset + 2];
-        pushError(x + 1, y, redError, greenError, blueError, 7 / 16);
-        pushError(x - 1, y + 1, redError, greenError, blueError, 3 / 16);
-        pushError(x, y + 1, redError, greenError, blueError, 5 / 16);
-        pushError(x + 1, y + 1, redError, greenError, blueError, 1 / 16);
+    for (let source = 0, target = 0; source < pixels.length; source += 4, target++) {
+      if (pixels[source + 3] < TRANSPARENT_ALPHA_THRESHOLD) {
+        indexed[target] = TRANSPARENT_INDEX;
+        continue;
       }
+
+      indexed[target] = findNearestPaletteIndex(
+        palette,
+        cache,
+        pixels[source],
+        pixels[source + 1],
+        pixels[source + 2]
+      );
     }
     return indexed;
   };
@@ -522,13 +676,13 @@
     return URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "image/gif" }));
   };
 
-  const encodeGif = (frames, width, height, delay = 8) => {
+  const encodeGif = (frames, width, height, delay = 8, palette = fallbackPalette) => {
     const bytes = [];
     pushString(bytes, "GIF89a");
     pushShort(bytes, width);
     pushShort(bytes, height);
     bytes.push(0xf7, 0, 0);
-    bytes.push(...gifPalette);
+    bytes.push(...palette);
 
     bytes.push(0x21, 0xff, 0x0b);
     pushString(bytes, "NETSCAPE2.0");
@@ -539,7 +693,7 @@
     frames.forEach((indexedPixels) => {
       bytes.push(0x21, 0xf9, 0x04, 0x09);
       pushShort(bytes, delay);
-      bytes.push(255, 0);
+      bytes.push(TRANSPARENT_INDEX, 0);
 
       bytes.push(0x2c);
       pushShort(bytes, 0);
@@ -563,6 +717,47 @@
     return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
   };
 
+  const drawOverlayWash = (ctx, width, height, overlay, progress) => {
+    if (Array.isArray(overlay.stripes) && overlay.stripes.length > 0) {
+      const longestSide = Math.max(width, height);
+      const repetitions = 4;
+      const gradientStart = { x: -longestSide, y: -longestSide };
+      const gradientEnd = { x: width + longestSide, y: height + longestSide };
+      const cycleOffsetX = (gradientEnd.x - gradientStart.x) / repetitions;
+      const cycleOffsetY = (gradientEnd.y - gradientStart.y) / repetitions;
+      const movingOffsetX = progress * cycleOffsetX;
+      const movingOffsetY = progress * cycleOffsetY;
+      const gradient = ctx.createLinearGradient(
+        gradientStart.x + movingOffsetX,
+        gradientStart.y + movingOffsetY,
+        gradientEnd.x + movingOffsetX,
+        gradientEnd.y + movingOffsetY
+      );
+      const repeatedStripes = Array.from(
+        { length: repetitions },
+        () => overlay.stripes
+      ).flat();
+      const stripeWidth = 1 / repeatedStripes.length;
+      const blendWidth = stripeWidth * 0.16;
+
+      repeatedStripes.forEach((color, index) => {
+        const center = (index + 0.5) * stripeWidth;
+        gradient.addColorStop(Math.max(0, center - stripeWidth * 0.5 + blendWidth), color);
+        gradient.addColorStop(Math.min(1, center + stripeWidth * 0.5 - blendWidth), color);
+      });
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+      return;
+    }
+
+    const wash = ctx.createLinearGradient(0, 0, width, height);
+    wash.addColorStop(0, overlay.colors[0]);
+    wash.addColorStop(0.5, overlay.colors[1]);
+    wash.addColorStop(1, overlay.colors[2]);
+    ctx.fillStyle = wash;
+    ctx.fillRect(0, 0, width, height);
+  };
+
   const getGifSize = (image) => {
     const maxSide = Math.max(image.naturalWidth, image.naturalHeight);
     const maxOutputSide = 420;
@@ -577,6 +772,11 @@
       width: Math.max(1, Math.round(image.naturalWidth * scale)),
       height: Math.max(1, Math.round(image.naturalHeight * scale))
     };
+  };
+
+  const useHighQualitySmoothing = (ctx) => {
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
   };
 
   const drawStar = (ctx, x, y, radius, fillStyle, alpha) => {
@@ -609,6 +809,7 @@
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return "";
+    useHighQualitySmoothing(ctx);
 
     ctx.save();
     ctx.filter = `saturate(${overlay.saturation}) contrast(${overlay.contrast})`;
@@ -620,16 +821,13 @@
     overlayCanvas.height = height;
     const overlayCtx = overlayCanvas.getContext("2d");
     if (!overlayCtx) return "";
+    useHighQualitySmoothing(overlayCtx);
 
-    const wash = overlayCtx.createLinearGradient(0, 0, width, height);
-    wash.addColorStop(0, overlay.colors[0]);
-    wash.addColorStop(0.5, overlay.colors[1]);
-    wash.addColorStop(1, overlay.colors[2]);
     overlayCtx.globalAlpha = overlay.washAlpha;
-    overlayCtx.fillStyle = wash;
-    overlayCtx.fillRect(0, 0, width, height);
+    drawOverlayWash(overlayCtx, width, height, overlay, progress);
 
     if (overlay.impact) {
+      const isStrong = overlay.strength === "strong";
       const centerTint = overlayCtx.createRadialGradient(
         width * 0.42,
         height * 0.36,
@@ -638,18 +836,19 @@
         height * 0.5,
         longestSide * 0.78
       );
-      centerTint.addColorStop(0, colorWithAlpha(overlay.colors[1], 0.82));
-      centerTint.addColorStop(0.52, colorWithAlpha(overlay.colors[1], 0.38));
-      centerTint.addColorStop(1, colorWithAlpha(overlay.colors[0], 0.22));
-      overlayCtx.globalAlpha = 0.9;
+      centerTint.addColorStop(0, colorWithAlpha(overlay.colors[1], isStrong ? 1 : 0.82));
+      centerTint.addColorStop(0.52, colorWithAlpha(overlay.colors[1], isStrong ? 0.72 : 0.38));
+      centerTint.addColorStop(1, colorWithAlpha(overlay.colors[0], isStrong ? 0.5 : 0.22));
+      overlayCtx.globalAlpha = isStrong ? 1 : 0.9;
       overlayCtx.fillStyle = centerTint;
       overlayCtx.fillRect(0, 0, width, height);
     }
 
     overlayCtx.globalAlpha = overlay.waveAlpha;
     overlayCtx.lineWidth = Math.max(1.2, longestSide * 0.006);
-    for (let wave = 0; wave < 8; wave++) {
-      const yBase = (wave / 7) * height;
+    const waveCount = overlay.strength === "strong" ? 12 : 8;
+    for (let wave = 0; wave < waveCount; wave++) {
+      const yBase = (wave / (waveCount - 1)) * height;
       const offset = (progress * longestSide * 0.55 + wave * 19) % longestSide;
       overlayCtx.strokeStyle = wave % 2 === 0
         ? colorWithAlpha(overlay.colors[1], 0.5)
@@ -677,7 +876,8 @@
     overlayCtx.fillStyle = shine;
     overlayCtx.fillRect(0, 0, width, height);
 
-    for (let sparkle = 0; sparkle < (overlay.impact ? 7 : 5); sparkle++) {
+    const sparkleCount = overlay.strength === "strong" ? 12 : (overlay.impact ? 7 : 5);
+    for (let sparkle = 0; sparkle < sparkleCount; sparkle++) {
       const sparkleProgress = (progress + sparkle * 0.21) % 1;
       const sparkleX = width * ((sparkle * 0.29 + sparkleProgress * 0.48) % 1);
       const sparkleY = height * ((sparkle * 0.41 + sparkleProgress * 0.22) % 1);
@@ -703,6 +903,7 @@
     vignetteCanvas.height = height;
     const vignetteCtx = vignetteCanvas.getContext("2d");
     if (!vignetteCtx) return "";
+    useHighQualitySmoothing(vignetteCtx);
 
     const vignette = vignetteCtx.createRadialGradient(
       width * 0.5,
@@ -713,7 +914,9 @@
       longestSide * 0.72
     );
     vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
-    vignette.addColorStop(1, overlay.impact ? "rgba(0, 0, 0, 0.12)" : "rgba(0, 0, 0, 0.2)");
+    vignette.addColorStop(1, overlay.strength === "strong"
+      ? "rgba(0, 0, 0, 0.04)"
+      : (overlay.impact ? "rgba(0, 0, 0, 0.12)" : "rgba(0, 0, 0, 0.2)"));
     vignetteCtx.fillStyle = vignette;
     vignetteCtx.fillRect(0, 0, width, height);
     vignetteCtx.globalCompositeOperation = "destination-in";
@@ -729,7 +932,7 @@
 
   const makeOverlayGif = (image, overlay) => {
     const frameCount = 14;
-    const frames = [];
+    const renderedFrames = [];
     let width = 0;
     let height = 0;
     for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
@@ -737,9 +940,14 @@
       if (!frame) return "";
       width = frame.width;
       height = frame.height;
-      frames.push(quantizeFrame(frame.imageData));
+      renderedFrames.push(frame.imageData);
     }
-    return encodeGif(frames, width, height, 7);
+
+    const palette = buildGifPalette(renderedFrames);
+    const nearestCache = new Int16Array(32768);
+    nearestCache.fill(-1);
+    const indexedFrames = renderedFrames.map((frame) => quantizeFrame(frame, palette, nearestCache));
+    return encodeGif(indexedFrames, width, height, 7, palette);
   };
 
   const waitForPaint = () => {
@@ -765,10 +973,10 @@
     reader.onload = () => {
       const image = new Image();
       image.onload = async () => {
-        for (const overlay of rarityRenderOptions) {
+        for (const overlay of editorRenderOptions) {
           if (currentGeneration !== generationId) return;
 
-          const card = document.querySelector(`[data-rarity-card="${overlay.key}"]`);
+          const card = document.querySelector(`[data-editor-card="${overlay.key}"]`);
           if (!card) continue;
 
           const preview = card.querySelector(".rarity-preview");
@@ -792,7 +1000,7 @@
           preview.innerHTML = "";
           const result = document.createElement("img");
           result.src = gifUrl;
-          result.alt = `${overlay.label} animated rarity version`;
+          result.alt = `${overlay.label} animated overlay version`;
           preview.appendChild(result);
 
           download.href = gifUrl;
