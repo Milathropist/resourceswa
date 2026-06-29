@@ -191,6 +191,10 @@
   let searchTerm = "";
   let generationId = 0;
   let isEditorMode = false;
+  let editorImage = null;
+  let editorFileBaseName = "image";
+  let isOriginalRenderActive = false;
+  let originalRenderDownloadUrl = "";
 
   const normalize = (value) => value.toLowerCase().trim();
 
@@ -411,12 +415,21 @@
     name.textContent = overlay.label;
 
     const download = document.createElement("a");
-    download.className = "rarity-download";
+    download.className = "rarity-download rarity-preview-download";
     download.href = "#";
     download.setAttribute("aria-disabled", "true");
     download.textContent = "Download";
+    download.addEventListener("click", (event) => handleOverlayDownload(event, overlay));
 
-    meta.append(dot, name, download);
+    const originalDownload = document.createElement("button");
+    originalDownload.className = "rarity-download rarity-original-download";
+    originalDownload.type = "button";
+    originalDownload.disabled = true;
+    originalDownload.setAttribute("aria-disabled", "true");
+    originalDownload.textContent = "Download Original WebP";
+    originalDownload.addEventListener("click", (event) => handleOriginalOverlayDownload(event, overlay));
+
+    meta.append(dot, name, download, originalDownload);
     card.append(preview, meta);
 
     return card;
@@ -488,6 +501,12 @@
   const TRANSPARENT_ALPHA_THRESHOLD = 128;
   const TRANSPARENT_INDEX = 255;
   const MAX_OPAQUE_GIF_COLORS = 255;
+  const EDITOR_GIF_MAX_SIDE = 640;
+  const EDITOR_GIF_MAX_PIXELS = 320000;
+  const EDITOR_GIF_MIN_SIDE = 160;
+  const EDITOR_GIF_FRAME_COUNT = 14;
+  const ORIGINAL_WEBP_QUALITY = 1;
+  const ORIGINAL_WEBP_FRAME_DELAY_MS = 70;
 
   const buildFallbackPalette = () => {
     const palette = [];
@@ -676,7 +695,7 @@
     return URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "image/gif" }));
   };
 
-  const encodeGif = (frames, width, height, delay = 8, palette = fallbackPalette) => {
+  const createGifBytes = (width, height, palette = fallbackPalette) => {
     const bytes = [];
     pushString(bytes, "GIF89a");
     pushShort(bytes, width);
@@ -689,22 +708,25 @@
     bytes.push(0x03, 0x01);
     pushShort(bytes, 0);
     bytes.push(0);
+    return bytes;
+  };
 
-    frames.forEach((indexedPixels) => {
-      bytes.push(0x21, 0xf9, 0x04, 0x09);
-      pushShort(bytes, delay);
-      bytes.push(TRANSPARENT_INDEX, 0);
+  const appendGifFrame = (bytes, indexedPixels, width, height, delay = 8) => {
+    bytes.push(0x21, 0xf9, 0x04, 0x09);
+    pushShort(bytes, delay);
+    bytes.push(TRANSPARENT_INDEX, 0);
 
-      bytes.push(0x2c);
-      pushShort(bytes, 0);
-      pushShort(bytes, 0);
-      pushShort(bytes, width);
-      pushShort(bytes, height);
-      bytes.push(0);
-      bytes.push(8);
-      pushBlocks(bytes, lzwEncode(indexedPixels));
-    });
+    bytes.push(0x2c);
+    pushShort(bytes, 0);
+    pushShort(bytes, 0);
+    pushShort(bytes, width);
+    pushShort(bytes, height);
+    bytes.push(0);
+    bytes.push(8);
+    pushBlocks(bytes, lzwEncode(indexedPixels));
+  };
 
+  const finishGifBytes = (bytes) => {
     bytes.push(0x3b);
     return bytesToGifUrl(bytes);
   };
@@ -758,20 +780,36 @@
     ctx.fillRect(0, 0, width, height);
   };
 
-  const getGifSize = (image) => {
-    const maxSide = Math.max(image.naturalWidth, image.naturalHeight);
-    const maxOutputSide = 420;
-    const minOutputSide = 160;
-    let scale = Math.min(1, maxOutputSide / maxSide);
+  const getPreviewGifSize = (image) => {
+    const sourceWidth = Math.max(1, Math.round(image.naturalWidth || image.width || 1));
+    const sourceHeight = Math.max(1, Math.round(image.naturalHeight || image.height || 1));
+    const longestSide = Math.max(sourceWidth, sourceHeight);
+    const totalPixels = sourceWidth * sourceHeight;
+    const sideScale = EDITOR_GIF_MAX_SIDE / longestSide;
+    const pixelScale = Math.sqrt(EDITOR_GIF_MAX_PIXELS / totalPixels);
+    let scale = Math.min(1, sideScale, pixelScale);
 
-    if (maxSide < minOutputSide) {
-      scale = minOutputSide / maxSide;
+    if (longestSide < EDITOR_GIF_MIN_SIDE) {
+      scale = EDITOR_GIF_MIN_SIDE / longestSide;
     }
 
     return {
-      width: Math.max(1, Math.round(image.naturalWidth * scale)),
-      height: Math.max(1, Math.round(image.naturalHeight * scale))
+      width: Math.max(1, Math.round(sourceWidth * scale)),
+      height: Math.max(1, Math.round(sourceHeight * scale))
     };
+  };
+
+  const getOriginalImageSize = (image) => {
+    return {
+      width: Math.max(1, Math.round(image.naturalWidth || image.width || 1)),
+      height: Math.max(1, Math.round(image.naturalHeight || image.height || 1))
+    };
+  };
+
+  const getErrorMessage = (error) => {
+    if (!error) return "The browser could not finish this original-size WebP.";
+    if (error instanceof Error && error.message) return error.message;
+    return String(error);
   };
 
   const useHighQualitySmoothing = (ctx) => {
@@ -799,8 +837,8 @@
     ctx.restore();
   };
 
-  const drawOverlayFrame = (image, overlay, frameIndex, frameCount) => {
-    const { width, height } = getGifSize(image);
+  const drawOverlayCanvas = (image, overlay, frameIndex, frameCount, outputSize = getPreviewGifSize(image)) => {
+    const { width, height } = outputSize;
     const longestSide = Math.max(width, height);
     const progress = frameIndex / frameCount;
     const canvas = document.createElement("canvas");
@@ -924,36 +962,284 @@
     ctx.drawImage(vignetteCanvas, 0, 0);
 
     return {
-      imageData: ctx.getImageData(0, 0, width, height),
+      canvas,
       width,
       height
     };
   };
 
-  const makeOverlayGif = (image, overlay) => {
-    const frameCount = 14;
-    const renderedFrames = [];
-    let width = 0;
-    let height = 0;
-    for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
-      const frame = drawOverlayFrame(image, overlay, frameIndex, frameCount);
-      if (!frame) return "";
-      width = frame.width;
-      height = frame.height;
-      renderedFrames.push(frame.imageData);
+  const drawOverlayFrame = (image, overlay, frameIndex, frameCount, outputSize = getPreviewGifSize(image)) => {
+    const frame = drawOverlayCanvas(image, overlay, frameIndex, frameCount, outputSize);
+    if (!frame) return "";
+
+    const ctx = frame.canvas.getContext("2d");
+    if (!ctx) return "";
+
+    return {
+      imageData: ctx.getImageData(0, 0, frame.width, frame.height),
+      width: frame.width,
+      height: frame.height
+    };
+  };
+
+  const makeOverlayGif = (image, overlay, outputSize = getPreviewGifSize(image)) => {
+    try {
+      const frameCount = EDITOR_GIF_FRAME_COUNT;
+      const firstFrame = drawOverlayFrame(image, overlay, 0, frameCount, outputSize);
+      if (!firstFrame) return "";
+
+      const { width, height } = firstFrame;
+      const palette = buildGifPalette([firstFrame.imageData]);
+      const nearestCache = new Int16Array(32768);
+      nearestCache.fill(-1);
+      const bytes = createGifBytes(width, height, palette);
+
+      appendGifFrame(bytes, quantizeFrame(firstFrame.imageData, palette, nearestCache), width, height, 7);
+      for (let frameIndex = 1; frameIndex < frameCount; frameIndex++) {
+        const frame = drawOverlayFrame(image, overlay, frameIndex, frameCount, outputSize);
+        if (!frame) return "";
+        appendGifFrame(bytes, quantizeFrame(frame.imageData, palette, nearestCache), width, height, 7);
+      }
+
+      return finishGifBytes(bytes);
+    } catch (error) {
+      console.error("Overlay GIF generation failed", error);
+      return "";
+    }
+  };
+
+  const writeStringAt = (bytes, offset, value) => {
+    for (let index = 0; index < value.length; index++) {
+      bytes[offset + index] = value.charCodeAt(index);
+    }
+  };
+
+  const writeIntAt = (bytes, offset, value) => {
+    bytes[offset] = value & 0xff;
+    bytes[offset + 1] = (value >> 8) & 0xff;
+    bytes[offset + 2] = (value >> 16) & 0xff;
+    bytes[offset + 3] = (value >> 24) & 0xff;
+  };
+
+  const write24At = (bytes, offset, value) => {
+    bytes[offset] = value & 0xff;
+    bytes[offset + 1] = (value >> 8) & 0xff;
+    bytes[offset + 2] = (value >> 16) & 0xff;
+  };
+
+  const createRiffChunk = (type, data) => {
+    const paddedSize = data.length + (data.length % 2);
+    const bytes = new Uint8Array(8 + paddedSize);
+    writeStringAt(bytes, 0, type);
+    writeIntAt(bytes, 4, data.length);
+    bytes.set(data, 8);
+    return bytes;
+  };
+
+  const concatByteArrays = (arrays) => {
+    const totalLength = arrays.reduce((sum, value) => sum + value.length, 0);
+    const output = new Uint8Array(totalLength);
+    let offset = 0;
+
+    arrays.forEach((value) => {
+      output.set(value, offset);
+      offset += value.length;
+    });
+
+    return output;
+  };
+
+  const getChunkType = (bytes, offset) => {
+    return String.fromCharCode(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+  };
+
+  const getInt = (bytes, offset) => {
+    return bytes[offset]
+      | (bytes[offset + 1] << 8)
+      | (bytes[offset + 2] << 16)
+      | (bytes[offset + 3] << 24);
+  };
+
+  const getWebpFramePayload = (bytes) => {
+    if (getChunkType(bytes, 0) !== "RIFF" || getChunkType(bytes, 8) !== "WEBP") {
+      throw new Error("The browser returned an invalid WebP frame.");
     }
 
-    const palette = buildGifPalette(renderedFrames);
-    const nearestCache = new Int16Array(32768);
-    nearestCache.fill(-1);
-    const indexedFrames = renderedFrames.map((frame) => quantizeFrame(frame, palette, nearestCache));
-    return encodeGif(indexedFrames, width, height, 7, palette);
+    const chunks = [];
+    let offset = 12;
+    while (offset + 8 <= bytes.length) {
+      const type = getChunkType(bytes, offset);
+      const size = getInt(bytes, offset + 4);
+      const chunkEnd = offset + 8 + size + (size % 2);
+
+      if (chunkEnd > bytes.length) {
+        throw new Error("The browser returned a truncated WebP frame.");
+      }
+
+      if (type === "ALPH" || type === "VP8 " || type === "VP8L") {
+        chunks.push(bytes.slice(offset, chunkEnd));
+      }
+
+      offset = chunkEnd;
+    }
+
+    if (!chunks.some((chunk) => getChunkType(chunk, 0) === "VP8 " || getChunkType(chunk, 0) === "VP8L")) {
+      throw new Error("The browser returned a WebP frame without image data.");
+    }
+
+    return concatByteArrays(chunks);
+  };
+
+  const createAnimatedWebpUrl = (frames, width, height) => {
+    const chunks = [];
+    const vp8x = new Uint8Array(10);
+    vp8x[0] = 0x12;
+    write24At(vp8x, 4, width - 1);
+    write24At(vp8x, 7, height - 1);
+    chunks.push(createRiffChunk("VP8X", vp8x));
+
+    const anim = new Uint8Array(6);
+    chunks.push(createRiffChunk("ANIM", anim));
+
+    frames.forEach((frame) => {
+      const header = new Uint8Array(16);
+      write24At(header, 0, 0);
+      write24At(header, 3, 0);
+      write24At(header, 6, width - 1);
+      write24At(header, 9, height - 1);
+      write24At(header, 12, frame.duration);
+      header[15] = 0x02;
+      const frameData = concatByteArrays([header, frame.payload]);
+      chunks.push(createRiffChunk("ANMF", frameData));
+    });
+
+    const payload = concatByteArrays(chunks);
+    const bytes = new Uint8Array(12 + payload.length);
+    writeStringAt(bytes, 0, "RIFF");
+    writeIntAt(bytes, 4, payload.length + 4);
+    writeStringAt(bytes, 8, "WEBP");
+    bytes.set(payload, 12);
+
+    return URL.createObjectURL(new Blob([bytes], { type: "image/webp" }));
+  };
+
+  const canvasToWebpPayload = async (canvas) => {
+    const blob = await new Promise((resolve) => {
+      canvas.toBlob(resolve, "image/webp", ORIGINAL_WEBP_QUALITY);
+    });
+
+    if (!blob || blob.type !== "image/webp") {
+      throw new Error("This browser could not encode an original-size WebP frame.");
+    }
+
+    return getWebpFramePayload(new Uint8Array(await blob.arrayBuffer()));
+  };
+
+  const makeOriginalWebp = async (image, overlay, outputSize, onProgress) => {
+    try {
+      const frames = [];
+      for (let frameIndex = 0; frameIndex < EDITOR_GIF_FRAME_COUNT; frameIndex++) {
+        const frame = drawOverlayCanvas(
+          image,
+          overlay,
+          frameIndex,
+          EDITOR_GIF_FRAME_COUNT,
+          outputSize
+        );
+        if (!frame) {
+          return {
+            error: "The browser could not create a canvas for this original-size image.",
+            url: ""
+          };
+        }
+
+        frames.push({
+          duration: ORIGINAL_WEBP_FRAME_DELAY_MS,
+          payload: await canvasToWebpPayload(frame.canvas)
+        });
+        onProgress?.(frameIndex + 1, EDITOR_GIF_FRAME_COUNT);
+        await waitForPaint();
+      }
+
+      return {
+        error: "",
+        url: createAnimatedWebpUrl(frames, outputSize.width, outputSize.height)
+      };
+    } catch (error) {
+      console.error("Original size animated WebP generation failed", error);
+      return {
+        error: getErrorMessage(error),
+        url: ""
+      };
+    }
   };
 
   const waitForPaint = () => {
     return new Promise((resolve) => {
-      window.requestAnimationFrame(() => resolve());
+      window.requestAnimationFrame(() => {
+        window.setTimeout(resolve, 0);
+      });
     });
+  };
+
+  const clearOriginalRenderDownload = () => {
+    if (originalRenderDownloadUrl) {
+      URL.revokeObjectURL(originalRenderDownloadUrl);
+      originalRenderDownloadUrl = "";
+    }
+  };
+
+  const ensureOriginalRenderPopup = () => {
+    let popup = document.querySelector("[data-original-render-popup]");
+    if (popup) return popup;
+
+    popup = document.createElement("div");
+    popup.className = "original-render-popup";
+    popup.dataset.originalRenderPopup = "";
+    popup.setAttribute("hidden", "");
+    popup.setAttribute("role", "dialog");
+    popup.setAttribute("aria-modal", "true");
+    popup.setAttribute("aria-labelledby", "originalRenderTitle");
+    popup.innerHTML = `
+      <div class="original-render-panel">
+        <div class="original-render-spinner" data-original-render-spinner aria-hidden="true"></div>
+        <h2 id="originalRenderTitle" data-original-render-title>Rendering original WebP...</h2>
+        <p data-original-render-copy>Preparing your download.</p>
+        <a class="original-render-download" data-original-render-download hidden>Download WebP</a>
+        <button class="original-render-close" type="button" data-original-render-close hidden>Close</button>
+      </div>
+    `;
+
+    popup.querySelector("[data-original-render-close]")?.addEventListener("click", () => {
+      popup.setAttribute("hidden", "");
+      clearOriginalRenderDownload();
+    });
+
+    document.body.appendChild(popup);
+    return popup;
+  };
+
+  const updateOriginalRenderPopup = ({ state, title, copy, downloadUrl = "", filename = "" }) => {
+    const popup = ensureOriginalRenderPopup();
+    const spinner = popup.querySelector("[data-original-render-spinner]");
+    const heading = popup.querySelector("[data-original-render-title]");
+    const message = popup.querySelector("[data-original-render-copy]");
+    const download = popup.querySelector("[data-original-render-download]");
+    const close = popup.querySelector("[data-original-render-close]");
+    const isLoading = state === "loading";
+    const isReady = state === "ready" && downloadUrl;
+
+    popup.removeAttribute("hidden");
+    spinner?.toggleAttribute("hidden", !isLoading);
+    close?.toggleAttribute("hidden", isLoading);
+    download?.toggleAttribute("hidden", !isReady);
+
+    if (heading) heading.textContent = title;
+    if (message) message.textContent = copy;
+    if (download && isReady) {
+      download.href = downloadUrl;
+      download.download = filename;
+    }
   };
 
   const releaseCardUrl = (card) => {
@@ -962,17 +1248,216 @@
       URL.revokeObjectURL(previousUrl);
       delete card.dataset.gifUrl;
     }
+
+    const previousDownloadUrl = card.dataset.downloadUrl;
+    if (previousDownloadUrl) {
+      URL.revokeObjectURL(previousDownloadUrl);
+      delete card.dataset.downloadUrl;
+    }
+  };
+
+  const releaseDownloadUrl = (card) => {
+    const previousDownloadUrl = card.dataset.downloadUrl;
+    if (previousDownloadUrl) {
+      URL.revokeObjectURL(previousDownloadUrl);
+      delete card.dataset.downloadUrl;
+    }
+  };
+
+  const triggerDownload = (url, filename) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const setDownloadPending = (download) => {
+    download.setAttribute("aria-disabled", "true");
+    download.removeAttribute("download");
+    download.href = "#";
+    download.textContent = "Download";
+  };
+
+  const setOriginalDownloadPending = (download) => {
+    if (!download) return;
+    download.disabled = true;
+    download.setAttribute("aria-disabled", "true");
+    download.textContent = "Download Original WebP";
+  };
+
+  const setOriginalDownloadReady = (download) => {
+    if (!download) return;
+    download.disabled = false;
+    download.removeAttribute("aria-disabled");
+    download.textContent = "Download Original WebP";
+  };
+
+  const setOriginalDownloadsBusy = (busy, activeButton = null) => {
+    document.querySelectorAll(".rarity-original-download").forEach((download) => {
+      if (busy) {
+        download.disabled = true;
+        download.setAttribute("aria-disabled", "true");
+        download.textContent = download === activeButton ? "Rendering WebP..." : "Download Original WebP";
+        return;
+      }
+
+      const card = download.closest("[data-editor-card]");
+      if (editorImage && card?.dataset.gifUrl) {
+        setOriginalDownloadReady(download);
+      } else {
+        setOriginalDownloadPending(download);
+      }
+    });
+  };
+
+  const setCardPlaceholder = (card, message) => {
+    const preview = card.querySelector(".rarity-preview");
+    const download = card.querySelector(".rarity-preview-download");
+    const originalDownload = card.querySelector(".rarity-original-download");
+    if (!preview || !download) return;
+
+    releaseCardUrl(card);
+    preview.innerHTML = `<div class="rarity-placeholder">${message}</div>`;
+    setDownloadPending(download);
+    setOriginalDownloadPending(originalDownload);
+  };
+
+  const setAllEditorCardsPlaceholder = (message) => {
+    document.querySelectorAll("[data-editor-card]").forEach((card) => {
+      setCardPlaceholder(card, message);
+    });
+  };
+
+  const handleOverlayDownload = async (event, overlay) => {
+    const download = event.currentTarget;
+    const card = download.closest("[data-editor-card]");
+    if (!card) return;
+
+    const readyUrl = card.dataset.downloadUrl || card.dataset.gifUrl;
+    const filename = `${editorFileBaseName}-${overlay.key}.gif`;
+    if (readyUrl) {
+      download.href = readyUrl;
+      download.download = filename;
+      return;
+    }
+
+    event.preventDefault();
+    if (download.getAttribute("aria-disabled") === "true" || !editorImage) return;
+
+    const currentGeneration = generationId;
+    releaseDownloadUrl(card);
+    download.setAttribute("aria-disabled", "true");
+    download.removeAttribute("download");
+    download.href = "#";
+    download.textContent = "Rendering...";
+
+    const gifUrl = makeOverlayGif(editorImage, overlay, getPreviewGifSize(editorImage));
+    if (currentGeneration !== generationId) {
+      if (gifUrl) URL.revokeObjectURL(gifUrl);
+      return;
+    }
+
+    if (!gifUrl) {
+      download.textContent = "Try Again";
+      download.removeAttribute("aria-disabled");
+      return;
+    }
+
+    card.dataset.downloadUrl = gifUrl;
+    download.href = gifUrl;
+    download.download = filename;
+    download.textContent = "Download GIF";
+    download.removeAttribute("aria-disabled");
+    triggerDownload(gifUrl, filename);
+  };
+
+  const handleOriginalOverlayDownload = async (event, overlay) => {
+    event.preventDefault();
+    const download = event.currentTarget;
+    if (download.getAttribute("aria-disabled") === "true" || !editorImage || isOriginalRenderActive) return;
+
+    const currentGeneration = generationId;
+    const filename = `${editorFileBaseName}-${overlay.key}-original.webp`;
+    const { width, height } = getOriginalImageSize(editorImage);
+
+    isOriginalRenderActive = true;
+    clearOriginalRenderDownload();
+    setOriginalDownloadsBusy(true, download);
+    updateOriginalRenderPopup({
+      state: "loading",
+      title: "Rendering original WebP...",
+      copy: `Applying ${overlay.label} at ${width}x${height}.`
+    });
+    await waitForPaint();
+
+    const result = await makeOriginalWebp(
+      editorImage,
+      overlay,
+      { width, height },
+      (complete, total) => {
+        updateOriginalRenderPopup({
+          state: "loading",
+          title: "Rendering original WebP...",
+          copy: `Applying ${overlay.label} at ${width}x${height}. Frame ${complete} of ${total}.`
+        });
+      }
+    );
+    const webpUrl = result.url;
+
+    if (currentGeneration !== generationId) {
+      if (webpUrl) URL.revokeObjectURL(webpUrl);
+      isOriginalRenderActive = false;
+      setOriginalDownloadsBusy(false);
+      document.querySelector("[data-original-render-popup]")?.setAttribute("hidden", "");
+      return;
+    }
+
+    isOriginalRenderActive = false;
+    setOriginalDownloadsBusy(false);
+
+    if (!webpUrl) {
+      updateOriginalRenderPopup({
+        state: "error",
+        title: "Original WebP failed",
+        copy: result.error || "The browser could not finish this original-size WebP."
+      });
+      return;
+    }
+
+    originalRenderDownloadUrl = webpUrl;
+    updateOriginalRenderPopup({
+      state: "ready",
+      title: "Download ready",
+      copy: "Your original-size WebP is ready.",
+      downloadUrl: webpUrl,
+      filename
+    });
+    triggerDownload(webpUrl, filename);
   };
 
   const handleImageUpload = (event) => {
     const file = event.target.files?.[0];
     if (!file || !file.type.startsWith("image/")) return;
     const currentGeneration = ++generationId;
+    const objectUrl = URL.createObjectURL(file);
+    editorImage = null;
+    editorFileBaseName = file.name.replace(/\.[^.]+$/, "") || "image";
+    clearOriginalRenderDownload();
+    document.querySelector("[data-original-render-popup]")?.setAttribute("hidden", "");
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const image = new Image();
-      image.onload = async () => {
+    setAllEditorCardsPlaceholder("Preparing image...");
+
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = async () => {
+      URL.revokeObjectURL(objectUrl);
+      if (currentGeneration !== generationId) return;
+      editorImage = image;
+
+      try {
         for (const overlay of editorRenderOptions) {
           if (currentGeneration !== generationId) return;
 
@@ -980,20 +1465,23 @@
           if (!card) continue;
 
           const preview = card.querySelector(".rarity-preview");
-          const download = card.querySelector(".rarity-download");
+          const download = card.querySelector(".rarity-preview-download");
+          const originalDownload = card.querySelector(".rarity-original-download");
           if (!preview || !download) continue;
 
           releaseCardUrl(card);
           preview.innerHTML = `<div class="rarity-placeholder">Generating ${overlay.label} GIF...</div>`;
-          download.setAttribute("aria-disabled", "true");
-          download.removeAttribute("download");
-          download.href = "#";
+          setDownloadPending(download);
           await waitForPaint();
 
-          const gifUrl = makeOverlayGif(image, overlay);
-          if (!gifUrl || currentGeneration !== generationId) {
+          const gifUrl = makeOverlayGif(image, overlay, getPreviewGifSize(image));
+          if (currentGeneration !== generationId) {
             if (gifUrl) URL.revokeObjectURL(gifUrl);
             return;
+          }
+          if (!gifUrl) {
+            preview.innerHTML = '<div class="rarity-placeholder">Could not generate this GIF.</div>';
+            continue;
           }
 
           card.dataset.gifUrl = gifUrl;
@@ -1004,15 +1492,27 @@
           preview.appendChild(result);
 
           download.href = gifUrl;
-          download.download = `${file.name.replace(/\.[^.]+$/, "") || "image"}-${overlay.key}.gif`;
+          download.download = `${editorFileBaseName}-${overlay.key}.gif`;
           download.textContent = "Download GIF";
           download.removeAttribute("aria-disabled");
+          setOriginalDownloadReady(originalDownload);
           await waitForPaint();
         }
-      };
-      image.src = String(reader.result);
+      } catch (error) {
+        console.error("Image editor generation failed", error);
+        if (currentGeneration === generationId) {
+          setAllEditorCardsPlaceholder("Could not generate overlays for this image.");
+        }
+      }
     };
-    reader.readAsDataURL(file);
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      editorImage = null;
+      if (currentGeneration === generationId) {
+        setAllEditorCardsPlaceholder("Could not load this image.");
+      }
+    };
+    image.src = objectUrl;
   };
 
   const setupSearch = () => {

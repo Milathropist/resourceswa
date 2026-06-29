@@ -377,11 +377,107 @@
     grid-column: 1 / -1;
     min-height: 2.35rem;
     font-size: 0.72rem;
+    width: 100%;
+    line-height: 1.2;
 }
 
-.rarity-download[aria-disabled="true"] {
+.rarity-download[aria-disabled="true"],
+.rarity-download:disabled {
     opacity: 0.45;
     pointer-events: none;
+}
+
+.original-render-popup[hidden],
+.original-render-spinner[hidden],
+.original-render-download[hidden],
+.original-render-close[hidden] {
+    display: none !important;
+}
+
+.original-render-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 10040;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.58);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.original-render-panel {
+    width: min(92vw, 28rem);
+    padding: 1.4rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-top-color: rgba(158, 157, 157, 0.4);
+    border-left-color: rgba(158, 157, 157, 0.3);
+    background: rgba(0, 0, 0, 0.78);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
+    text-align: center;
+}
+
+.original-render-spinner {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    border: 0.25rem solid rgba(255, 255, 255, 0.18);
+    border-top-color: #8fff8f;
+    animation: original-render-spin 0.9s linear infinite;
+}
+
+.original-render-panel h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 1.1rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+}
+
+.original-render-panel p {
+    margin: 0.75rem 0 1.1rem;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.original-render-download,
+.original-render-close {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-top-color: rgba(158, 157, 157, 0.4);
+    border-left-color: rgba(158, 157, 157, 0.3);
+    background-color: rgba(158, 157, 157, 0.08);
+    color: #ffffff !important;
+    cursor: pointer;
+    padding: 0 1rem;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.08rem;
+    font-size: 0.72rem;
+}
+
+.original-render-download {
+    margin-right: 0.5rem;
+}
+
+.original-render-download:hover,
+.original-render-close:hover {
+    background-color: rgba(143, 255, 143, 0.1);
+    border-top-color: rgba(143, 255, 143, 0.4);
+}
+
+@keyframes original-render-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Fancy text generator */
